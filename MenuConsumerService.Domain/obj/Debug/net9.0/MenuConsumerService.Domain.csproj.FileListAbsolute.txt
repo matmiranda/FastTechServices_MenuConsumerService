@@ -1,0 +1,12 @@
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\bin\Debug\net9.0\MenuConsumerService.Domain.deps.json
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\bin\Debug\net9.0\MenuConsumerService.Domain.dll
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\bin\Debug\net9.0\MenuConsumerService.Domain.pdb
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.AssemblyInfoInputs.cache
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.AssemblyInfo.cs
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.csproj.CoreCompileInputs.cache
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.sourcelink.json
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.dll
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\refint\MenuConsumerService.Domain.dll
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\MenuConsumerService.Domain.pdb
+C:\Users\matmi\OneDrive\Documentos\Hackaton\hackaton\consumer\FastTechServices_MenuConsumerService\MenuConsumerService.Domain\obj\Debug\net9.0\ref\MenuConsumerService.Domain.dll
