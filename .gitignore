@@ -1,0 +1,16 @@
+﻿################################################################################
+# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/MenuConsumerService.Worker/.vs
+/MenuConsumerService.Worker/MenuConsumerService.Application/bin/Debug/net9.0
+/MenuConsumerService.Worker/MenuConsumerService.Application/obj
+/MenuConsumerService.Worker/MenuConsumerService.Domain/bin/Debug/net9.0
+/MenuConsumerService.Worker/MenuConsumerService.Domain/obj
+/MenuConsumerService.Worker/MenuConsumerService.Infrastructure/bin/Debug/net9.0
+/MenuConsumerService.Worker/MenuConsumerService.Infrastructure/obj
+/MenuConsumerService.Worker/MenuConsumerService.Test/bin/Debug/net9.0
+/MenuConsumerService.Worker/MenuConsumerService.Test/obj
+/MenuConsumerService.Worker/MenuConsumerService.Worker/bin/Debug/net9.0
+/MenuConsumerService.Worker/MenuConsumerService.Worker/obj
