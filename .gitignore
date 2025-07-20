@@ -1,16 +1,57 @@
-﻿################################################################################
-# Este arquivo .gitignore foi criado automaticamente pelo Microsoft(R) Visual Studio.
-################################################################################
+﻿## Build results
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+*.log
 
-/.vs
-/MenuConsumerService.Worker/.vs
-/MenuConsumerService.Worker/MenuConsumerService.Application/bin/Debug/net9.0
-/MenuConsumerService.Worker/MenuConsumerService.Application/obj
-/MenuConsumerService.Worker/MenuConsumerService.Domain/bin/Debug/net9.0
-/MenuConsumerService.Worker/MenuConsumerService.Domain/obj
-/MenuConsumerService.Worker/MenuConsumerService.Infrastructure/bin/Debug/net9.0
-/MenuConsumerService.Worker/MenuConsumerService.Infrastructure/obj
-/MenuConsumerService.Worker/MenuConsumerService.Test/bin/Debug/net9.0
-/MenuConsumerService.Worker/MenuConsumerService.Test/obj
-/MenuConsumerService.Worker/MenuConsumerService.Worker/bin/Debug/net9.0
-/MenuConsumerService.Worker/MenuConsumerService.Worker/obj
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio folders
+.vs/
+
+## MacOS & Linux
+.DS_Store
+*.swp
+
+## Secrets
+appsettings.Development.json
+appsettings.Local.json
+
+## JWT, Keys & Tokens (caso você use arquivos separados)
+*.secrets.json
+*.env
+.env*
+
+## Docker
+docker-compose.override.yml
+
+## Rider
+.idea/
+
+## NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+.nuget/
+
+## Others
+*.vsidx
+*.dbmdl
+*.vscode/
+
+# Logs
+*.log
+
+# Test results
+TestResults/
+*.coverage
+*.coveragexml
+
+# Node/npm (caso use em frontend junto)
+node_modules/
+dist/
