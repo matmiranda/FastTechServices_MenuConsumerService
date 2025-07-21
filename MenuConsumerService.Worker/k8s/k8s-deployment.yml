@@ -21,6 +21,7 @@ spec:
         environment: production
       annotations:
         description: "Pod do microsserviço consumer-order"
+        redeploy-timestamp: "{{timestamp}}"
     spec:
       containers:
         - name: consumer-order

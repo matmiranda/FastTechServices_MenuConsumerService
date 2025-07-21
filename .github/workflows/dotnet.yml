@@ -78,6 +78,11 @@ jobs:
           resource-group: '${{ secrets.AKS_RESOURCE_GROUP }}'
           cluster-name: '${{ secrets.AKS_CLUSTER_NAME }}'
 
+      - name: Injetar timestamp para forçar rollout do Deployment
+        run: |
+          timestamp=$(date +%s)
+          sed -i "s/{{timestamp}}/$timestamp/" AuthService.Api/k8s/k8s-deployment.yml
+
       - name: Update Kubernetes Resources
         run: |
           # Aplica ConfigMap (cria ou atualiza se necessário)
