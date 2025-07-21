@@ -11,6 +11,7 @@
                 Description = dto.Description,
                 Price = dto.Price,
                 MealType = dto.MealType,
+                Available = dto.Available,
                 CreatedAt = dto.CreatedAt,
                 UpdatedAt = dto.UpdatedAt
             };

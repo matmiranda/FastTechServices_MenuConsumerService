@@ -22,7 +22,7 @@ namespace MenuConsumerService.Infrastructure.Persistence
 
             using var connection = new MySqlConnection(_connectionString);
 
-            await connection.ExecuteAsync(query, menu);
+            await connection.ExecuteAsync(query, menu);            
         }
 
 
