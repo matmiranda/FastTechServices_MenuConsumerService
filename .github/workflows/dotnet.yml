@@ -25,10 +25,10 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore dependencies
-        run: dotnet restore MenuConsumerService.sln
+        run: dotnet restore MenuConsumerService.Worker.sln
 
       - name: Build
-        run: dotnet build MenuConsumerService.sln --configuration Release
+        run: dotnet build MenuConsumerService.Worker.sln --configuration Release
 
       # - name: Run Unit Tests        
       #   run: dotnet test MenuConsumerService.Tests/MenuConsumerService.Tests.csproj --configuration Release --logger "console;verbosity=detailed"
