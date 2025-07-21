@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: consumer-order
-          image: acrfiap2025.azurecr.io/k8s:latest
+          image: acrfiap2025.azurecr.io/menu-consumer:latest
           ports:
             - containerPort: 80
           envFrom:
