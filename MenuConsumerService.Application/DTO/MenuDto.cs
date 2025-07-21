@@ -2,27 +2,27 @@
 
 namespace MenuConsumerService.Application.DTO
 {
-    public class MenuDto
+    namespace MenuConsumerService.Application.DTO
     {
-        [JsonPropertyName("id")]
-        public decimal Id { get; set; }
+        public class MenuDto
+        {
+            public Guid Id { get; set; }
 
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
+            public string Name { get; set; } = string.Empty;
 
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
 
-        [JsonPropertyName("price")]
-        public decimal Price { get; set; }
+            public decimal Price { get; set; }
 
-        [JsonPropertyName("meal_type")]
-        public string MealType { get; set; } = string.Empty;
+            public string MealType { get; set; } = string.Empty;
 
-        [JsonPropertyName("create_at")]
-        public DateTime CreatedAt { get; set; }
+            public bool Available { get; set; } = true;
 
-        [JsonPropertyName("updated_at")]
-        public DateTime UpdatedAt { get; set; }
+            public DateTime CreatedAt { get; set; }
+
+            public DateTime UpdatedAt { get; set; }
+
+            public string Action { get; set; } = string.Empty;
+        }
     }
 }

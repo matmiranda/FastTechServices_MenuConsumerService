@@ -8,6 +8,8 @@ using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using MenuConsumerService.Application.DTO;
+
 
 namespace MenuConsumerService.Infrastructure.Messaging
 {
@@ -74,41 +76,70 @@ namespace MenuConsumerService.Infrastructure.Messaging
                     if (messageNode != null)
                     {
                         var menuJson = messageNode.ToString();
-                        var menu = JsonSerializer.Deserialize<MenuDto>(menuJson, new JsonSerializerOptions
+                        var menu = JsonSerializer.Deserialize<Application.DTO.MenuConsumerService.Application.DTO.MenuDto>(menuJson, new JsonSerializerOptions
                         {
                             PropertyNameCaseInsensitive = true
                         });
 
                         if (menu != null)
                         {
+                            if (string.IsNullOrWhiteSpace(menu.Action))
+                            {
+                                _logger.LogWarning("A propriedade 'Action' está vazia ou nula.");
+                                _channel.BasicNack(ea.DeliveryTag, false, false);
+                                return;
+                            }
+
                             using var scope = _serviceProvider.CreateScope();
                             var menuService = scope.ServiceProvider.GetRequiredService<IMenuService>();
 
+                            if (menu.Action.ToUpper() == "CREATE")
+                            {
+                                menu.Id = Guid.NewGuid();
+                                menu.CreatedAt = DateTime.UtcNow;
+                                menu.UpdatedAt = DateTime.UtcNow;
+                                _logger.LogInformation("Criando novo item de menu com ID: {0}", menu.Id);
+                            }
+                            else if (menu.Action.ToUpper() == "UPDATE")
+                            {
+                                menu.UpdatedAt = DateTime.UtcNow;
+                                _logger.LogInformation("Atualizando item de menu com ID existente: {0}", menu.Id);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Ação desconhecida recebida: {0}", menu.Action);
+                                _channel.BasicNack(ea.DeliveryTag, false, false);
+                                return;
+                            }
+
                             var menuEntity = menu.ToEntity();
                             await menuService.SalvarMenuAsync(menuEntity);
-
                             _channel.BasicAck(ea.DeliveryTag, false);
                             _logger.LogInformation("Menu {0} salvo no banco!", menu.Id);
                         }
                         else
                         {
                             _logger.LogWarning("Falha ao desserializar o menu.");
+                            _channel.BasicNack(ea.DeliveryTag, false, false);
                         }
                     }
                     else
                     {
                         _logger.LogWarning("JSON recebido não contém a propriedade 'message'.");
+                        _channel.BasicNack(ea.DeliveryTag, false, false);
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Erro ao processar mensagem: {0}", ex.Message);
+                    _channel.BasicNack(ea.DeliveryTag, false, false);
                 }
             };
 
             _channel.BasicConsume(queue: _rabbitMqSettings.QueueName, autoAck: false, consumer: consumer);
             return Task.CompletedTask;
         }
+
 
         public override void Dispose()
         {

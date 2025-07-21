@@ -2,7 +2,7 @@
 {
     public static class MenuDtoExtensions
     {
-        public static Domain.Entities.Menu ToEntity(this MenuDto dto)
+        public static Domain.Entities.Menu ToEntity(this MenuConsumerService.Application.DTO.MenuDto dto)
         {
             return new Domain.Entities.Menu
             {
