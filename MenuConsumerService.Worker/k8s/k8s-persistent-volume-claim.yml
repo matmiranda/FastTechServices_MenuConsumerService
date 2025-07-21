@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: menu-consumer-persistent-volume-claim
+  labels:
+    app: consumer-order
+    tier: backend
+  annotations:
+    description: "Claim para acessar o volume persistente do microsserviço consumer-order"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: default

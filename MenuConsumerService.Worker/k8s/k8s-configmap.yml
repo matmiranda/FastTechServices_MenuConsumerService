@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: menu-consumer-configmap
+  labels:
+    app: consumer-order
+    tier: backend
+  annotations:
+    description: "Configurações externas para o microsserviço consumer-order"
+data:
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft__AspNetCore: "Warning"
+  AllowedHosts: "*"
+  RabbitMQSettings__Host: "20.206.204.96"
+  RabbitMQSettings__Username: "fiaprabbitmq"
+  RabbitMQSettings__Password: "fiaprabbitmq123@"
+  RabbitMQSettings__QueueName: "criar_contatos"
+  ApiAzure__Key: "f51a99ebaae9465c9bba4e2f48fbd7a0"
+  ApplicationInsights__InstrumentationKey: "ba3be08c-ad9c-4b24-b905-73b8ae55bfcc"
