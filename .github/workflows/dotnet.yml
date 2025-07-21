@@ -81,7 +81,7 @@ jobs:
       - name: Injetar timestamp para forçar rollout do Deployment
         run: |
           timestamp=$(date +%s)
-          sed -i "s/{{timestamp}}/$timestamp/" AuthService.Api/k8s/k8s-deployment.yml
+          sed -i "s/{{timestamp}}/$timestamp/" MenuConsumerService.Worker/k8s/k8s-deployment.yml
 
       - name: Update Kubernetes Resources
         run: |
