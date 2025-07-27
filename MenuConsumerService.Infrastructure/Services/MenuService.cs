@@ -13,10 +13,12 @@ namespace MenuConsumerService.Infrastructure.Services
         }
         public async Task SalvarMenuAsync(Menu menu)
         {
-            // Garantir que a DataCriacao e DataAlteracao sejam atualizadas antes de salvar
-            menu.CreatedAt = DateTime.Now;
-            menu.UpdatedAt = DateTime.Now;
             await _menuRepository.AddMenuAsync(menu);
+        }
+
+        public async Task AtualizarMenuAsync(Menu menu)
+        {
+            await _menuRepository.UpdateMenuAsync(menu);
         }
     }
 }

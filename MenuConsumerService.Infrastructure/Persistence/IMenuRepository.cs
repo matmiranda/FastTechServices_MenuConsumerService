@@ -5,5 +5,6 @@ namespace MenuConsumerService.Infrastructure.Persistence
     public interface IMenuRepository
     {
         Task AddMenuAsync(Menu menu);
+        Task UpdateMenuAsync(Menu menu);
     }
 }

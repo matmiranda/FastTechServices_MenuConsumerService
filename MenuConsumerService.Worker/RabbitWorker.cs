@@ -1,6 +1,4 @@
 ﻿using MenuConsumerService.Infrastructure.Messaging;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace MenuConsumerService.Worker
 {
@@ -21,11 +19,15 @@ namespace MenuConsumerService.Worker
         {
             _logger.LogInformation("RabbitWorker iniciando o consumidor...");
 
-            // Registra e inicia listeners de fila
-            await _consumer.StartAsync(stoppingToken);
-
-            // Mantém o worker vivo até cancelamento
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+            try
+            {
+                await _consumer.StartAsync(stoppingToken);
+                await Task.Delay(Timeout.Infinite, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao iniciar o consumidor RabbitMQ.");
+            }
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)

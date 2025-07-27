@@ -11,42 +11,60 @@ namespace MenuConsumerService.Infrastructure.Persistence
 
         public async Task AddMenuAsync(Menu menu)
         {
-            // Garantir que a DataCriacao e DataAlteracao sejam atualizadas antes de salvar
-            menu.CreatedAt = DateTime.Now;
+            menu.CreatedAt = DateTime.UtcNow.AddHours(-3);
+            menu.UpdatedAt = DateTime.UtcNow.AddHours(-3);
 
             const string query = @"
-        INSERT INTO menuitems (Id, Name, Description, Price, mealType, Available, CreatedAt, UpdatedAt)
-        VALUES (@Id, @Name, @Description, @Price, @MealType, @Available, @CreatedAt, @UpdatedAt);";
+    INSERT INTO menu_db.menu_items (
+        name,
+        description,
+        price,
+        meal_type_id,
+        available,
+        image_url,
+        tags,
+        calories,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        @Name,
+        @Description,
+        @Price,
+        @MealTypeId,
+        @Available,
+        @ImageUrl,
+        @Tags,
+        @Calories,
+        @CreatedAt,
+        @UpdatedAt
+    );";
 
-            Console.WriteLine($"Item Menu: {menu.Id}, Nome: {menu.Name}, Preço: {menu.Price}, Tipo Comida: {menu.MealType}, Disponibilidade: {menu.Available}, Data Criação: {menu.CreatedAt}, Data Atualização: {menu.UpdatedAt}");
-
-            using var connection = new MySqlConnection(_connectionString);
-
-            await connection.ExecuteAsync(query, menu);            
-        }
-
-
-        public async Task UpdateMenuAsync(Menu menu)
-        {
-            menu.UpdatedAt = DateTime.Now;
-
-            const string query = @"
-        UPDATE menuitems
-        SET 
-            Name = @Name,
-            Description = @Description,
-            Price = @Price,
-            mealType = @MealType,
-            Available = @Available,
-            UpdatedAt = @UpdatedAt
-        WHERE Id = @Id;";
-
-            Console.WriteLine($"Atualizando Menu: {menu.Id}, Nome: {menu.Name}, Preço: {menu.Price}, Tipo Comida: {menu.MealType}, Disponível: {menu.Available}, Atualizado em: {menu.UpdatedAt}");
 
             using var connection = new MySqlConnection(_connectionString);
             await connection.ExecuteAsync(query, menu);
         }
 
+        public async Task UpdateMenuAsync(Menu menu)
+        {
+            menu.UpdatedAt = DateTime.UtcNow.AddHours(-3);
 
+            const string query = @"
+    UPDATE menu_db.menu_items
+    SET 
+        name = @Name,
+        description = @Description,
+        price = @Price,
+        meal_type_id = @MealTypeId,
+        available = @Available,
+        image_url = @ImageUrl,
+        tags = @Tags,
+        calories = @Calories,
+        updated_at = @UpdatedAt
+    WHERE id = @Id;";
+
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.ExecuteAsync(query, menu);
+        }
     }
 }

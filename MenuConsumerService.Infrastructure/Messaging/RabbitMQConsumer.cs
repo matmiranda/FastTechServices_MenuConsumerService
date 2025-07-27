@@ -1,216 +1,128 @@
 ﻿using MenuConsumerService.Application.DTO;
+using MenuConsumerService.Application.DTO.MenuConsumerService.Application.DTO;
 using MenuConsumerService.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-
 
 namespace MenuConsumerService.Infrastructure.Messaging
 {
-    public class RabbitMQConsumer : BackgroundService
+    public class RabbitMQConsumer : IDisposable
     {
         private readonly ILogger<RabbitMQConsumer> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly RabbitMQSettings _rabbitMqSettings;
-        private IConnection _connection;
-        private IModel _channel;
+        private readonly RabbitMQSettings _settings;
+        private IConnection? _connection;
+        private IModel? _channel;
 
-        public RabbitMQConsumer(ILogger<RabbitMQConsumer> logger, IServiceProvider serviceProvider, RabbitMQSettings rabbitMqSettings, IConnection connection = null, IModel channel = null)
+        public RabbitMQConsumer(
+            ILogger<RabbitMQConsumer> logger,
+            IServiceProvider serviceProvider,
+            RabbitMQSettings settings)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _rabbitMqSettings = rabbitMqSettings;
-
-            if (connection == null || channel == null)
-            {
-                try
-                {
-                    var factory = new ConnectionFactory()
-                    {
-                        HostName = _rabbitMqSettings.Host,
-                        UserName = _rabbitMqSettings.Username,
-                        Password = _rabbitMqSettings.Password
-                    };
-
-                    _connection = factory.CreateConnection();
-                    _channel = _connection.CreateModel();
-                    _channel.QueueDeclare(queue: _rabbitMqSettings.QueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-
-                    _logger.LogInformation("Conectado ao RabbitMQ em {0} e aguardando mensagens na fila '{1}'...",
-                        _rabbitMqSettings.Host, _rabbitMqSettings.QueueName);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Erro ao conectar ao RabbitMQ: {0}", ex.Message);
-                    throw;
-                }
-            }
-            else
-            {
-                _connection = connection;
-                _channel = channel;
-            }
+            _settings = settings;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        public Task StartAsync(CancellationToken stoppingToken)
         {
-            var consumer = new EventingBasicConsumer(_channel);
+            var factory = new ConnectionFactory
+            {
+                HostName = _settings.Host,
+                UserName = _settings.Username,
+                Password = _settings.Password,
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
+            };
 
-            consumer.Received += async (model, ea) =>
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _channel.QueueDeclare(queue: "menu.item.registered", durable: true, exclusive: false, autoDelete: false);
+            _channel.QueueDeclare(queue: "menu.item.updated", durable: true, exclusive: false, autoDelete: false);
+
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += async (_, ea) =>
             {
                 try
                 {
-                    var body = ea.Body.ToArray();
-                    var messageJson = Encoding.UTF8.GetString(body);
+                    var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    _logger.LogInformation("Mensagem recebida da fila '{0}': {1}", ea.RoutingKey, json);
 
-                    _logger.LogInformation("Mensagem recebida: {0}", messageJson);
-
-                    var menu = JsonSerializer.Deserialize<Application.DTO.MenuConsumerService.Application.DTO.MenuDto>(messageJson, new JsonSerializerOptions
+                    var menuDto = JsonSerializer.Deserialize<MenuDto>(json, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
 
-                    if (menu != null)
-                    {
-                        if (string.IsNullOrWhiteSpace(menu.Action))
-                        {
-                            _logger.LogWarning("A propriedade 'Action' está vazia ou nula.");
-                            _channel.BasicNack(ea.DeliveryTag, false, false);
-                            return;
-                        }
-
-                        using var scope = _serviceProvider.CreateScope();
-                        var menuService = scope.ServiceProvider.GetRequiredService<IMenuService>();
-
-                        if (menu.Action.Equals("CREATE", StringComparison.OrdinalIgnoreCase))
-                        {
-                            menu.Id = Guid.NewGuid();
-                            menu.CreatedAt = DateTime.UtcNow;
-                            menu.UpdatedAt = DateTime.UtcNow;
-                            _logger.LogInformation("Criando novo item de menu com ID: {0}", menu.Id);
-                        }
-                        else if (menu.Action.Equals("UPDATE", StringComparison.OrdinalIgnoreCase))
-                        {
-                            menu.UpdatedAt = DateTime.UtcNow;
-                            _logger.LogInformation("Atualizando item de menu com ID existente: {0}", menu.Id);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Ação desconhecida recebida: {0}", menu.Action);
-                            _channel.BasicNack(ea.DeliveryTag, false, false);
-                            return;
-                        }
-
-                        var menuEntity = menu.ToEntity();
-                        await menuService.SalvarMenuAsync(menuEntity);
-                        _channel.BasicAck(ea.DeliveryTag, false);
-                        _logger.LogInformation("Menu {0} salvo no banco!", menu.Id);
-                    }
-                    else
+                    if (menuDto == null)
                     {
                         _logger.LogWarning("Falha ao desserializar o menu.");
                         _channel.BasicNack(ea.DeliveryTag, false, false);
+                        return;
                     }
+
+                    using var scope = _serviceProvider.CreateScope();
+                    var menuService = scope.ServiceProvider.GetRequiredService<IMenuService>();
+
+                    if (ea.RoutingKey.Equals("menu.item.registered", StringComparison.OrdinalIgnoreCase))
+                    {
+                        menuDto.CreatedAt = DateTime.UtcNow.AddHours(-3);
+                        menuDto.UpdatedAt = DateTime.UtcNow.AddHours(-3);
+                        _logger.LogInformation("Criando novo menu com ID {0}", menuDto.Id);
+                        var entity = menuDto.ToEntity();
+                        await menuService.SalvarMenuAsync(entity);
+                    }
+                    else if (ea.RoutingKey.Equals("menu.item.updated", StringComparison.OrdinalIgnoreCase))
+                    {
+                        menuDto.UpdatedAt = DateTime.UtcNow.AddHours(-3);
+                        _logger.LogInformation("Atualizando menu com ID existente {0}", menuDto.Id);
+                        var entity = menuDto.ToEntity();
+                        await menuService.AtualizarMenuAsync(entity);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Fila desconhecida: {0}", ea.RoutingKey);
+                        _channel.BasicNack(ea.DeliveryTag, false, false);
+                        return;
+                    }
+
+                    _channel.BasicAck(ea.DeliveryTag, false);
+                    _logger.LogInformation("Menu {0} salvo com sucesso!", menuDto.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Erro ao processar mensagem: {0}", ex.Message);
+                    _logger.LogError(ex, "Erro ao processar mensagem da fila '{0}'", ea.RoutingKey);
                     _channel.BasicNack(ea.DeliveryTag, false, false);
                 }
             };
 
+            _channel.BasicConsume(queue: "menu.item.registered", autoAck: false, consumer: consumer);
+            _channel.BasicConsume(queue: "menu.item.updated", autoAck: false, consumer: consumer);
 
-            //consumer.Received += async (model, ea) =>
-            //{
-            //    try
-            //    {
-            //        var body = ea.Body.ToArray();
-            //        var messageJson = Encoding.UTF8.GetString(body);
-
-            //        _logger.LogInformation("Mensagem recebida: {0}", messageJson);
-
-            //        var jsonObject = JsonNode.Parse(messageJson);
-            //        var messageNode = jsonObject?["message"];
-
-            //        if (messageNode != null)
-            //        {
-            //            var menuJson = messageNode.ToString();
-            //            var menu = JsonSerializer.Deserialize<Application.DTO.MenuConsumerService.Application.DTO.MenuDto>(menuJson, new JsonSerializerOptions
-            //            {
-            //                PropertyNameCaseInsensitive = true
-            //            });
-
-            //            if (menu != null)
-            //            {
-            //                if (string.IsNullOrWhiteSpace(menu.Action))
-            //                {
-            //                    _logger.LogWarning("A propriedade 'Action' está vazia ou nula.");
-            //                    _channel.BasicNack(ea.DeliveryTag, false, false);
-            //                    return;
-            //                }
-
-            //                using var scope = _serviceProvider.CreateScope();
-            //                var menuService = scope.ServiceProvider.GetRequiredService<IMenuService>();
-
-            //                if (menu.Action.ToUpper() == "CREATE")
-            //                {
-            //                    menu.Id = Guid.NewGuid();
-            //                    menu.CreatedAt = DateTime.UtcNow;
-            //                    menu.UpdatedAt = DateTime.UtcNow;
-            //                    _logger.LogInformation("Criando novo item de menu com ID: {0}", menu.Id);
-            //                }
-            //                else if (menu.Action.ToUpper() == "UPDATE")
-            //                {
-            //                    menu.UpdatedAt = DateTime.UtcNow;
-            //                    _logger.LogInformation("Atualizando item de menu com ID existente: {0}", menu.Id);
-            //                }
-            //                else
-            //                {
-            //                    _logger.LogWarning("Ação desconhecida recebida: {0}", menu.Action);
-            //                    _channel.BasicNack(ea.DeliveryTag, false, false);
-            //                    return;
-            //                }
-
-            //                var menuEntity = menu.ToEntity();
-            //                await menuService.SalvarMenuAsync(menuEntity);
-            //                _channel.BasicAck(ea.DeliveryTag, false);
-            //                _logger.LogInformation("Menu {0} salvo no banco!", menu.Id);
-            //            }
-            //            else
-            //            {
-            //                _logger.LogWarning("Falha ao desserializar o menu.");
-            //                _channel.BasicNack(ea.DeliveryTag, false, false);
-            //            }
-            //        }
-            //        else
-            //        {
-            //            _logger.LogWarning("JSON recebido não contém a propriedade 'message'.");
-            //            _channel.BasicNack(ea.DeliveryTag, false, false);
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        _logger.LogError("Erro ao processar mensagem: {0}", ex.Message);
-            //        _channel.BasicNack(ea.DeliveryTag, false, false);
-            //    }
-            //};
-
-            _channel.BasicConsume(queue: _rabbitMqSettings.QueueName, autoAck: false, consumer: consumer);
             return Task.CompletedTask;
         }
 
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Parando RabbitMQConsumer...");
+            _channel?.Close();
+            _connection?.Close();
+            _channel?.Dispose();
+            _connection?.Dispose();
+            return Task.CompletedTask;
+        }
 
-        public override void Dispose()
+        public void Dispose()
         {
             _logger.LogInformation("Finalizando RabbitMQConsumer...");
             _channel?.Close();
             _connection?.Close();
-            base.Dispose();
+            _channel?.Dispose();
+            _connection?.Dispose();
         }
     }
 
@@ -219,6 +131,5 @@ namespace MenuConsumerService.Infrastructure.Messaging
         public string Host { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-        public string QueueName { get; set; } = string.Empty;
     }
 }

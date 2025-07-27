@@ -5,5 +5,6 @@ namespace MenuConsumerService.Application.Interfaces
     public interface IMenuService
     {
         Task SalvarMenuAsync(Menu menu);
+        Task AtualizarMenuAsync(Menu menu);
     }
 }
