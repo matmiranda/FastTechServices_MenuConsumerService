@@ -72,7 +72,7 @@ namespace MenuConsumerService.Infrastructure.Messaging
                     {
                         menuDto.CreatedAt = DateTime.UtcNow.AddHours(-3);
                         menuDto.UpdatedAt = DateTime.UtcNow.AddHours(-3);
-                        _logger.LogInformation("Criando novo menu com ID {0}", menuDto.Id);
+                        _logger.LogInformation("Criando novo menu");
                         var entity = menuDto.ToEntity();
                         await menuService.SalvarMenuAsync(entity);
                     }
@@ -91,7 +91,7 @@ namespace MenuConsumerService.Infrastructure.Messaging
                     }
 
                     _channel.BasicAck(ea.DeliveryTag, false);
-                    _logger.LogInformation("Menu {0} salvo com sucesso!", menuDto.Id);
+                    _logger.LogInformation("Menu criado/atualizado com sucesso!");
                 }
                 catch (Exception ex)
                 {
